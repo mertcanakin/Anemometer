@@ -7,19 +7,16 @@ int counter = 0;
 int a_state;
 int a_lastState;  
 int button_state = 0;
-
+String dir;
+int mapped;
 // Wind Speed Part:
 int sensor = A0;
-const float wid = 0.04;   //adjust the width of the fan blade 
-const float rad = 0.01;   //adjust the radius of the point of detection
-const float pi = 3.14;  
+  
 float time1;
 float time2;
 float vel;
 float diff;
-float tnet;
-float rpm;
-
+float wind_speed;
 void setup() { 
   pinMode(outputA,INPUT);
   pinMode(outputB,INPUT);
@@ -41,10 +38,9 @@ void loop() {
   if(analogRead(sensor)>980)
   {
     time2 = millis();
-    diff = (time2-time1);         
-    vel = wid/diff;                      //rotation velocity
-    tnet = (2*pi*rad)/vel;              //time = (2*pi*radius)/velocity.
-    rpm = (60000)/tnet;                // time in ms to minutes and then to rpm conversion step.
+    diff = (time2-time1); 
+    diff = diff / 1000;
+    wind_speed = (2*3.14*0.0001*3600) / diff;         
   }
 
   // Wind Direction Calculation:
@@ -59,41 +55,45 @@ void loop() {
     } else {
       counter --;
     }
-
-
-  } 
+    
+   } 
 
   // Calibration
   if(button_state == 1){
     counter = 0;
   }
+  
   a_lastState = a_state; // Updates the previous state of the outputA with the current state
-    
+  direction();
+  Serial.print(dir);
+  Serial.print("  ***  ");
+  Serial.println(wind_speed);
+  
 }
 void direction(){
-  int mapped = counter * 12 % 360;
+  mapped = counter * 12 % 360;
   if((mapped >= -24 && mapped <= 0) || (mapped <= -336 && mapped >= -359) || (mapped >= 0 && mapped <=24))  {
-    Serial.print("N");
+    dir = "N";
   }
   if((mapped >24 && mapped <= 72) || (mapped > -336 && mapped <= -288)){
-    Serial.print("N-E");
+    dir = "N-E";
   }
   if((mapped > 72 && mapped <= 108) || (mapped > -288 && mapped <= -252)){
-    Serial.print("E");
+    dir = "E";
   }
   if((mapped > 108 && mapped <= 156) || (mapped > -252 && mapped <= -216)){
-    Serial.print("S-E");
+    dir = "S-E";
   }
   if((mapped > 156 && mapped <= 204) || (mapped > -216 && mapped <= -168)){
-    Serial.print("S");
+    dir = "S";
   }
   if((mapped > 204 && mapped <= 264) || (mapped > -168 && mapped <= -120)){
-    Serial.print("S-W");
+    dir = "S-W";
   }
   if((mapped > 264 && mapped <= 300) || (mapped > -120 && mapped <= -72)){
-    Serial.print("W");
+    dir = "W";
   }
   if((mapped > 300 && mapped <= 359) || (mapped > -72 && mapped <= -25)){
-    Serial.print("N-W");
+    dir = "N-W";
   }
 }
